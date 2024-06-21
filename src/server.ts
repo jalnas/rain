@@ -25,19 +25,6 @@ api.get("/coordinate", async (req, res) => {
   res.end()
 })
 
-api.get("/route", async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "*")
-  res.setHeader("Access-Control-Allow-Headers", "*")
-
-  const [from, to] = JSON.parse(req.query.route.toString())
-
-  console.log(from, to)
-
-  res.status(200)
-  res.end()
-})
-
 api.listen(api.get("port"), () => {
   console.log("App is running at http://localhost:%d", api.get("port"))
   console.log("Press CTRL-C to stop\n")
