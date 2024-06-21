@@ -20,9 +20,8 @@ api.get("/coordinate", async (req, res) => {
 
   const forecast = radar.getForecastAtNode([lat, lng])
 
-  console.log(forecast)
-
   res.status(200)
+  res.write(JSON.stringify(forecast, null, 2))
   res.end()
 })
 
