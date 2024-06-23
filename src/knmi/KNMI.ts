@@ -1,11 +1,8 @@
 import fetch from "node-fetch"
 import { sub as dateFnsSub } from "date-fns"
 import { formatInTimeZone, utcToZonedTime, toDate } from "date-fns-tz"
-import * as dotenv from "dotenv"
 
 import KNMINotificationListener from "./KNMINotificationListener.js"
-
-dotenv.config()
 
 export default class KNMI {
   #api_key: string

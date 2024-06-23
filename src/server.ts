@@ -1,8 +1,6 @@
+import * as Sentry from "@sentry/node"
 import express from "express"
-import * as dotenv from "dotenv"
 import Radar from "./Radar.js"
-
-dotenv.config()
 
 const radar: Radar = new Radar()
 const api = express()
@@ -25,7 +23,8 @@ api.get("/coordinate", async (req, res) => {
   res.end()
 })
 
+Sentry.setupExpressErrorHandler(api)
+
 api.listen(api.get("port"), () => {
-  console.log("App is running at http://localhost:%d", api.get("port"))
-  console.log("Press CTRL-C to stop\n")
+  console.log("App is running on port %d in %s mode", api.get("port"), process.env.NODE_ENV)
 })

@@ -1,7 +1,4 @@
 import mqtt from "mqtt"
-import * as dotenv from "dotenv"
-
-dotenv.config()
 
 export default class KNMINotificationListener {
   #client: mqtt.MqttClient
