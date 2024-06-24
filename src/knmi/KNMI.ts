@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node"
 import fetch from "node-fetch"
 import { sub as dateFnsSub } from "date-fns"
 import { formatInTimeZone, utcToZonedTime, toDate } from "date-fns-tz"
@@ -56,6 +57,8 @@ export default class KNMI {
 
     console.log("Fetching forecast dataset", dataset_filename, dataset_date)
 
+    const sentry_contexts = {}
+
     fetch(
       `https://api.dataplatform.knmi.nl/open-data/v1/datasets/radar_forecast/versions/1.0/files/${dataset_filename}/url`,
       {
@@ -65,9 +68,41 @@ export default class KNMI {
         },
       }
     )
-      .then((download_url_response) => download_url_response.json())
-      .then((response_json: KNMIDownloadURLResponse) => fetch(response_json.temporaryDownloadUrl))
-      .then((dataset_response) => dataset_response.arrayBuffer())
+      .then((download_url_response) => {
+        sentry_contexts["Download URL Response"] = {
+          ok: download_url_response.ok,
+          status: download_url_response.status,
+          statusText: download_url_response.statusText,
+        }
+
+        if (!download_url_response.ok) {
+          throw new Error(`Fetching ${dataset_filename} download url failed (${download_url_response.status})`)
+        }
+
+        return download_url_response.json()
+      })
+      .then((response_json: KNMIDownloadURLResponse) => {
+        sentry_contexts["Response JSON"] = response_json
+
+        if (!response_json.temporaryDownloadUrl) {
+          throw new Error(`No temporaryDownloadUrl parameter given in the response json`)
+        }
+
+        return fetch(response_json.temporaryDownloadUrl)
+      })
+      .then((dataset_response) => {
+        sentry_contexts["Dataset Response"] = {
+          ok: dataset_response.ok,
+          status: dataset_response.status,
+          statusText: dataset_response.statusText,
+        }
+
+        if (!dataset_response.ok) {
+          throw new Error(`Fetching ${dataset_filename} dataset failed (${dataset_response.status})`)
+        }
+
+        return dataset_response.arrayBuffer()
+      })
       .then((dataset_filedata) =>
         this.#onNewDataListener({
           filename: dataset_filename,
@@ -75,5 +110,20 @@ export default class KNMI {
           data: dataset_filedata,
         })
       )
+      .then(() => {
+        Sentry.captureEvent({
+          message: "Fetch Forecast Dataset",
+          level: "log",
+          contexts: sentry_contexts,
+        })
+      })
+      .catch((e) => {
+        console.log(e)
+        Sentry.captureEvent({
+          message: "Forecast Dataset Fetch Error",
+          level: "error",
+          contexts: sentry_contexts,
+        })
+      })
   }
 }
