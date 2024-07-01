@@ -110,13 +110,6 @@ export default class KNMI {
           data: dataset_filedata,
         })
       )
-      .then(() => {
-        Sentry.captureEvent({
-          message: "Fetch Forecast Dataset",
-          level: "log",
-          contexts: sentry_contexts,
-        })
-      })
       .catch((e) => {
         console.log(e)
         Sentry.captureEvent({
