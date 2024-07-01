@@ -13,14 +13,25 @@ api.get("/coordinate", async (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "*")
   res.setHeader("Access-Control-Allow-Headers", "*")
 
-  const lat = parseFloat(req.query.lat.toString())
-  const lng = parseFloat(req.query.lng.toString())
+  const lat = parseFloat(req.query.lat?.toString())
+  const lng = parseFloat(req.query.lng?.toString())
+  const interpolate = parseInt(req.query.interpolate?.toString()) ? true : false
 
-  const forecast = radar.getForecastAtNode([lat, lng])
+  if (process.env.NODE_ENV == "development") {
+    console.log("Coordinate forecast request", lat, lng, interpolate)
+  }
 
-  res.status(200)
-  res.write(JSON.stringify(forecast, null, 2))
-  res.end()
+  try {
+    const forecast = radar.getForecastAtNode([lat, lng], interpolate)
+
+    res.status(200)
+    res.write(JSON.stringify(forecast, null, 2))
+    res.end()
+  } catch (e) {
+    res.status(400)
+    res.write(e.message)
+    res.end()
+  }
 })
 
 Sentry.setupExpressErrorHandler(api)

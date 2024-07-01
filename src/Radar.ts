@@ -116,9 +116,9 @@ export default class Radar {
         time: frame.time,
         value: interpolateBilinear(
           frame.value,
-          forecast_t1[index].value,
-          forecast_b0[index].value,
-          forecast_b1[index].value,
+          forecast_t1.data[index].value,
+          forecast_b0.data[index].value,
+          forecast_b1.data[index].value,
           x - x0,
           y - y0
         ),
